@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Recipient {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String   @unique
+  timezone   String
+  sendHour   Int
+  sendMinute Int
+  isActive   Boolean  @default(true)
+  isPaused   Boolean  @default(false)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  messageLogs      MessageLog[]
+  inboundMessages  InboundMessage[]
+  dailySendLocks   DailySendLock[]
+}
+
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  body      String
+  category  String
+  isActive  Boolean  @default(true)
+  isPersonal Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messageLogs MessageLog[]
+}
+
+model MessageLog {
+  id          String   @id @default(cuid())
+  recipientId String
+  templateId  String?
+  bodySent    String
+  status      String
+  twilioSid   String?
+  errorMessage String?
+  sentAt      DateTime
+  createdAt   DateTime @default(now())
+
+  recipient Recipient    @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  template  MessageTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId, sentAt])
+  @@index([recipientId])
+  @@index([sentAt])
+}
+
+model InboundMessage {
+  id           String   @id @default(cuid())
+  recipientId  String?
+  fromPhone    String
+  body         String
+  normalizedBody String?
+  optAction    String?
+  twilioSid    String?
+  receivedAt   DateTime
+  createdAt    DateTime @default(now())
+
+  recipient Recipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
+
+  @@index([recipientId])
+  @@index([receivedAt])
+}
+
+model DailySendLock {
+  id          String   @id @default(cuid())
+  recipientId String
+  sentDate    DateTime @db.Date
+  createdAt   DateTime @default(now())
+
+  recipient Recipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@unique([recipientId, sentDate])
+  @@index([recipientId])
+  @@index([sentDate])
+}
+
+model DailyContent {
+  id          String   @id @default(cuid())
+  contentDate DateTime @unique @db.Date
+  messageBody String
+  resources   String?
+  promptUsed  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

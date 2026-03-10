@@ -2,9 +2,10 @@ import { prisma } from "./prisma";
 import { generateDailyContent } from "./openai";
 import { getAppTodayDate, getAppTodayLabel, getAppDayOfWeek } from "./timezone";
 
-// Prisma client may not have dailyContent until after "prisma generate" (schema includes DailyContent)
+// Prisma client may not have dailyContent until after "prisma generate" (schema includes DailyContent).
+// Cast to any so Prisma delegate calls (findUnique/upsert with contentDate) are not type-checked as Recipient.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const dailyContent = (prisma as any).dailyContent as undefined | typeof prisma.recipient;
+const dailyContent = (prisma as any).dailyContent as any;
 
 /** Shape of a DailyContent row (for typing when Prisma client type isn't available). */
 export type DailyContentRow = {

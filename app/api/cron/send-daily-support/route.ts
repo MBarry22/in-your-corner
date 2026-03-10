@@ -46,8 +46,10 @@ export async function GET(req: NextRequest) {
 
   summary.recipientsChecked = activeRecipients.length;
 
+  // Always generate a fresh message for today (Calgary date) before sending, so the 8 AM send uses
+  // a message that says the correct day/date (e.g. Tuesday, not Monday’s leftover).
   if (process.env.USE_AI_DAILY_MESSAGE === "true" && process.env.OPENAI_API_KEY) {
-    await ensureDailyContentForToday();
+    await ensureDailyContentForToday(undefined, true);
   }
 
   for (const r of activeRecipients) {

@@ -6,14 +6,25 @@ import { getAppTodayDate, getAppTodayLabel, getAppDayOfWeek } from "./timezone";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dailyContent = (prisma as any).dailyContent as undefined | typeof prisma.recipient;
 
+/** Shape of a DailyContent row (for typing when Prisma client type isn't available). */
+export type DailyContentRow = {
+  id: string;
+  contentDate: Date;
+  messageBody: string;
+  resources: string | null;
+  promptUsed: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 /**
  * Get stored daily content for a given calendar date (use getAppTodayDate() for "today" in Calgary).
  */
-export async function getDailyContentForDate(date: Date) {
+export async function getDailyContentForDate(date: Date): Promise<DailyContentRow | null> {
   if (!dailyContent) return null;
   return dailyContent.findUnique({
     where: { contentDate: date },
-  });
+  }) as Promise<DailyContentRow | null>;
 }
 
 /**

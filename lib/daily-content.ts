@@ -23,9 +23,8 @@ export type DailyContentRow = {
  */
 export async function getDailyContentForDate(date: Date): Promise<DailyContentRow | null> {
   if (!dailyContent) return null;
-  return dailyContent.findUnique({
-    where: { contentDate: date },
-  }) as Promise<DailyContentRow | null>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return dailyContent.findUnique({ where: { contentDate: date } as any }) as Promise<DailyContentRow | null>;
 }
 
 /**
@@ -40,9 +39,8 @@ export async function ensureDailyContentForToday(
 
   const today = getAppTodayDate();
   if (!forceRegenerate) {
-    const existing = await dailyContent.findUnique({
-      where: { contentDate: today },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await dailyContent.findUnique({ where: { contentDate: today } as any });
     if (existing) return existing;
   }
 
@@ -58,8 +56,9 @@ export async function ensureDailyContentForToday(
 
   const resourcesJson = JSON.stringify(generated.resources);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await dailyContent.upsert({
-    where: { contentDate: today },
+    where: { contentDate: today } as any,
     create: {
       contentDate: today,
       messageBody: generated.message,
@@ -71,7 +70,7 @@ export async function ensureDailyContentForToday(
       resources: resourcesJson,
       promptUsed: customPrompt ?? null,
     },
-  });
+  } as any);
 
   return { messageBody: generated.message, resources: resourcesJson };
 }
@@ -107,8 +106,9 @@ export async function saveTodayContent(
   if (!dailyContent) return false;
   const today = getAppTodayDate();
   const resourcesJson = JSON.stringify(resources);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await dailyContent.upsert({
-    where: { contentDate: today },
+    where: { contentDate: today } as any,
     create: {
       contentDate: today,
       messageBody: messageBody.trim(),
@@ -120,6 +120,6 @@ export async function saveTodayContent(
       resources: resourcesJson,
       promptUsed: null,
     },
-  });
+  } as any);
   return true;
 }
